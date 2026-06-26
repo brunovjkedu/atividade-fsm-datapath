@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="620" viewBox="0 0 980 620">
+  <defs>
+    <marker id="seta" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#222"/>
+    </marker>
+    <style>
+      .estado {
+        fill: #ffffff;
+        stroke: #222222;
+        stroke-width: 2;
+      }
+      .texto {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 16px;
+        fill: #111111;
+        text-anchor: middle;
+      }
+      .titulo {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 22px;
+        font-weight: bold;
+        fill: #111111;
+        text-anchor: middle;
+      }
+      .linha {
+        fill: none;
+        stroke: #222222;
+        stroke-width: 2;
+        marker-end: url(#seta);
+      }
+      .condicao {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 14px;
+        fill: #111111;
+        text-anchor: middle;
+      }
+    </style>
+  </defs>
+
+  <text x="490" y="35" class="titulo">Diagrama de estados - Multiplicacao por somas e deslocamentos</text>
+
+  <ellipse cx="110" cy="110" rx="70" ry="38" class="estado"/>
+  <text x="110" y="116" class="texto">INICIO</text>
+
+  <rect x="260" y="72" width="165" height="76" rx="10" class="estado"/>
+  <text x="342" y="98" class="texto">PREPARA</text>
+  <text x="342" y="120" class="texto">zera R2</text>
+  <text x="342" y="142" class="texto">copia A e B</text>
+
+  <polygon points="555,70 655,110 555,150 455,110" class="estado"/>
+  <text x="555" y="107" class="texto">TESTA</text>
+  <text x="555" y="128" class="texto">B = 0?</text>
+
+  <polygon points="555,245 665,285 555,325 445,285" class="estado"/>
+  <text x="555" y="282" class="texto">TESTA BIT</text>
+  <text x="555" y="303" class="texto">B[0]</text>
+
+  <rect x="245" y="247" width="170" height="76" rx="10" class="estado"/>
+  <text x="330" y="279" class="texto">SOMA</text>
+  <text x="330" y="301" class="texto">R2 = R2 + A</text>
+
+  <rect x="475" y="420" width="185" height="88" rx="10" class="estado"/>
+  <text x="567" y="448" class="texto">DESLOCA</text>
+  <text x="567" y="470" class="texto">A = A &lt;&lt; 1</text>
+  <text x="567" y="492" class="texto">B = B &gt;&gt; 1</text>
+
+  <ellipse cx="835" cy="110" rx="70" ry="38" class="estado"/>
+  <text x="835" y="116" class="texto">FIM</text>
+
+  <rect x="755" y="245" width="160" height="76" rx="10" class="estado"/>
+  <text x="835" y="275" class="texto">AGUARDA</text>
+  <text x="835" y="297" class="texto">inicio = 0</text>
+
+  <path d="M180 110 L260 110" class="linha"/>
+  <path d="M425 110 L455 110" class="linha"/>
+  <path d="M655 110 L765 110" class="linha"/>
+  <text x="710" y="95" class="condicao">sim</text>
+
+  <path d="M555 150 L555 245" class="linha"/>
+  <text x="585" y="199" class="condicao">nao</text>
+
+  <path d="M445 285 L415 285" class="linha"/>
+  <text x="430" y="268" class="condicao">1</text>
+
+  <path d="M555 325 L555 420" class="linha"/>
+  <text x="585" y="375" class="condicao">0</text>
+
+  <path d="M330 323 C330 395 445 395 520 420" class="linha"/>
+  <path d="M567 420 C567 365 730 365 730 285 C730 210 665 210 590 160" class="linha"/>
+  <text x="715" y="355" class="condicao">volta a testar</text>
+
+  <path d="M835 148 L835 245" class="linha"/>
+  <path d="M755 285 C675 285 690 560 140 560 C55 560 50 170 95 148" class="linha"/>
+  <text x="705" y="305" class="condicao">inicio = 0</text>
+
+  <text x="490" y="590" class="condicao">Obs.: no Verilog, alguns estados foram separados em preparacao e escrita por causa do datapath.</text>
+</svg>

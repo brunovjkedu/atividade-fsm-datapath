@@ -2,19 +2,7 @@
 
 ## Diagrama de estados
 
-```mermaid
-flowchart TD
-    A["INICIO"] --> B["PREPARA<br/>zera resultado<br/>copia A<br/>copia B<br/>carrega 1"]
-    B --> C["TESTA B"]
-    C -->|B = 0| G["FIM"]
-    C -->|B != 0| D["TESTA BIT<br/>B[0]"]
-    D -->|bit = 1| E["SOMA<br/>resultado = resultado + A"]
-    D -->|bit = 0| F["DESLOCA<br/>A = A << 1<br/>B = B >> 1<br/>contador++"]
-    E --> F
-    F --> C
-    G --> H["aguarda inicio = 0"]
-    H --> A
-```
+![Diagrama de estados da Atividade 1](diagrama_estados_atividade1.svg)
 
 No codigo Verilog, os estados `SOMA` e `DESLOCA` foram divididos em estados de preparacao e escrita para respeitar o funcionamento do datapath fornecido.
 
