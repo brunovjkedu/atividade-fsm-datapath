@@ -65,7 +65,9 @@ module atividade1_top (
         .estado_atual  (estado)
     );
 
-    assign valor_display = (~KEY[3]) ? resultado : ultimo_valor_carregado;
+    assign valor_display = concluido ? resultado :
+                           (((~KEY[1]) || (~KEY[2])) ? SW :
+                           ((~KEY[3]) ? resultado : ultimo_valor_carregado));
 
     bin10_para_bcd conv (
         .bin     (valor_display),
