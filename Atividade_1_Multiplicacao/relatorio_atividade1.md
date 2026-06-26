@@ -3,32 +3,20 @@
 ## Diagrama de estados
 
 ```mermaid
-stateDiagram-v2
-    [*] --> IDLE
-    IDLE --> INIT_RES: inicio = 1
-    INIT_RES --> INIT_UM
-    INIT_UM --> COPIA_A
-    COPIA_A --> COPIA_B
-    COPIA_B --> TESTA
-
-    TESTA --> FIM: R4 = 0
-    TESTA --> PREP_DESL_A: bit0 = 0 e contador < 9
-    TESTA --> FIM: bit0 = 0 e contador = 9
-    TESTA --> PREP_SOMA: bit0 = 1
-
-    PREP_SOMA --> SOMA
-    SOMA --> FIM: contador = 9 ou nao ha mais bits
-    SOMA --> PREP_DESL_A: ainda ha bits
-
-    PREP_DESL_A --> DESL_A
-    DESL_A --> DESL_B
-    DESL_B --> INC
-    INC --> TESTA
-
-    FIM --> IDLE: inicio = 0
+flowchart TD
+    A["INICIO"] --> B["PREPARA<br/>zera resultado<br/>copia A<br/>copia B<br/>carrega 1"]
+    B --> C["TESTA B"]
+    C -->|B = 0| G["FIM"]
+    C -->|B != 0| D["TESTA BIT<br/>B[0]"]
+    D -->|bit = 1| E["SOMA<br/>resultado = resultado + A"]
+    D -->|bit = 0| F["DESLOCA<br/>A = A << 1<br/>B = B >> 1<br/>contador++"]
+    E --> F
+    F --> C
+    G --> H["aguarda inicio = 0"]
+    H --> A
 ```
 
-`PREP_SOMA` e `PREP_DESL_A` deixam a ULA calcular antes da escrita no banco, para capturar corretamente o carry/overflow.
+No codigo Verilog, os estados `SOMA` e `DESLOCA` foram divididos em estados de preparacao e escrita para respeitar o funcionamento do datapath fornecido.
 
 ## Tabela de transicao de estados
 
@@ -160,4 +148,3 @@ Se `B = 0`, a FSM termina em `TESTA`, pois o multiplicador deslocado `R4` ja e z
 Se `A = 0`, as somas adicionam zero ao acumulador. O resultado tambem fica zero.
 
 Portanto, a FSM trata corretamente os casos com zero.
-
