@@ -32,17 +32,19 @@ module multiplicador_somas_deslocamentos (
     localparam OP_ADD  = 3'b011;
     localparam OP_AND  = 3'b100;
 
-    localparam S_IDLE     = 4'd0;
-    localparam S_INIT_RES = 4'd1;
-    localparam S_INIT_UM  = 4'd2;
-    localparam S_COPIA_A  = 4'd3;
-    localparam S_COPIA_B  = 4'd4;
-    localparam S_TESTA    = 4'd5;
-    localparam S_SOMA     = 4'd6;
-    localparam S_DESL_A   = 4'd7;
-    localparam S_DESL_B   = 4'd8;
-    localparam S_INC      = 4'd9;
-    localparam S_FIM      = 4'd10;
+    localparam S_IDLE        = 4'd0;
+    localparam S_INIT_RES    = 4'd1;
+    localparam S_INIT_UM     = 4'd2;
+    localparam S_COPIA_A     = 4'd3;
+    localparam S_COPIA_B     = 4'd4;
+    localparam S_TESTA       = 4'd5;
+    localparam S_PREP_SOMA   = 4'd6;
+    localparam S_SOMA        = 4'd7;
+    localparam S_PREP_DESL_A = 4'd8;
+    localparam S_DESL_A      = 4'd9;
+    localparam S_DESL_B      = 4'd10;
+    localparam S_INC         = 4'd11;
+    localparam S_FIM         = 4'd12;
 
     reg [3:0] estado;
     reg [3:0] proximo_estado;
@@ -118,19 +120,22 @@ module multiplicador_somas_deslocamentos (
                     if (contador == 4'd9)
                         proximo_estado = S_FIM;
                     else
-                        proximo_estado = S_DESL_A;
+                        proximo_estado = S_PREP_DESL_A;
                 end else begin
-                    proximo_estado = S_SOMA;
+                    proximo_estado = S_PREP_SOMA;
                 end
             end
 
+            S_PREP_SOMA: proximo_estado = S_SOMA;
+
             S_SOMA: begin
-                if (contador == 4'd9)
+                if (contador == 4'd9 || !tem_mais_bits)
                     proximo_estado = S_FIM;
                 else
-                    proximo_estado = S_DESL_A;
+                    proximo_estado = S_PREP_DESL_A;
             end
 
+            S_PREP_DESL_A: proximo_estado = S_DESL_A;
             S_DESL_A: proximo_estado = S_DESL_B;
             S_DESL_B: proximo_estado = S_INC;
             S_INC:    proximo_estado = S_TESTA;
@@ -156,10 +161,10 @@ module multiplicador_somas_deslocamentos (
             if (estado == S_TESTA)
                 tem_mais_bits <= (va > 10'd1);
 
-            if (estado == S_SOMA)
+            if (estado == S_PREP_SOMA)
                 overflow_reg <= overflow_reg | c | termo_maior_10bits;
 
-            if (estado == S_DESL_A && tem_mais_bits)
+            if (estado == S_PREP_DESL_A && tem_mais_bits)
                 termo_maior_10bits <= termo_maior_10bits | c;
 
             if (estado == S_INC)
@@ -226,12 +231,26 @@ module multiplicador_somas_deslocamentos (
                 sel_op = OP_AND;
             end
 
+            S_PREP_SOMA: begin
+                sel_ra = R_RES;
+                sel_rb = R_MCDO;
+                sel_rw = R_RES;
+                sel_op = OP_ADD;
+            end
+
             S_SOMA: begin
                 write_enable = 1'b1;
                 sel_ra = R_RES;
                 sel_rb = R_MCDO;
                 sel_rw = R_RES;
                 sel_op = OP_ADD;
+            end
+
+            S_PREP_DESL_A: begin
+                sel_ra = R_MCDO;
+                sel_rb = R_UM;
+                sel_rw = R_MCDO;
+                sel_op = OP_SLL;
             end
 
             S_DESL_A: begin
