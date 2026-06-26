@@ -65,7 +65,7 @@ module multiplicador_somas_deslocamentos (
     wire       c;
     wire       escreve_dp;
 
-    assign escreve_dp = (estado == S_IDLE) ? (load_a | load_b) : (write_enable & clk);
+    assign escreve_dp = (estado == S_IDLE) ? (load_a | load_b) : (write_enable & ~clk);
 
     initial begin
         estado = S_IDLE;

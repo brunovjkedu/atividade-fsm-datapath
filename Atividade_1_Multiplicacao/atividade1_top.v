@@ -6,12 +6,15 @@
 // KEY[1]  = carrega SW em A
 // KEY[2]  = carrega SW em B
 // KEY[3]  = inicio
+// LEDG[0] = concluido
+// LEDG[1] = overflow
 //
 // Observacao: os botoes KEY da DE1 sao ativos em nivel baixo.
 module atividade1_top (
     input  wire [9:0] SW,
     input  wire [3:0] KEY,
     output wire [9:0] LEDR,
+    output wire [7:0] LEDG,
     output wire [6:0] HEX0,
     output wire [6:0] HEX1,
     output wire [6:0] HEX2,
@@ -53,9 +56,10 @@ module atividade1_top (
     hex7seg h2 (.digito(centena), .hex(HEX2));
     hex7seg h3 (.digito(milhar),  .hex(HEX3));
 
-    assign LEDR[0] = concluido;
-    assign LEDR[1] = overflow;
-    assign LEDR[5:2] = estado;
-    assign LEDR[9:6] = 4'b0000;
+    assign LEDG[0] = concluido;
+    assign LEDG[1] = overflow;
+    assign LEDG[7:2] = 6'b000000;
+
+    assign LEDR = 10'b0000000000;
 
 endmodule
