@@ -1,7 +1,6 @@
-`timescale 1ns/1ps
-
 module tb_atividade1;
 
+    // Sinais que simulam botoes, switches e saidas principais.
     reg clk;
     reg inicio;
     reg load_a;
@@ -31,6 +30,7 @@ module tb_atividade1;
     initial clk = 0;
     always #5 clk = ~clk;
 
+    // Um pulso de clock da FSM.
     task pulso;
         begin
             @(posedge clk);
@@ -41,6 +41,7 @@ module tb_atividade1;
     task carregar_a;
         input [9:0] valor;
         begin
+            // Simula apertar KEY1 com o valor nos switches.
             valor_entrada = valor;
             load_a = 1'b1; #2;
             load_a = 1'b0; #2;
@@ -50,6 +51,7 @@ module tb_atividade1;
     task carregar_b;
         input [9:0] valor;
         begin
+            // Simula apertar KEY2 com o valor nos switches.
             valor_entrada = valor;
             load_b = 1'b1; #2;
             load_b = 1'b0; #2;
@@ -63,6 +65,7 @@ module tb_atividade1;
         input       overflow_esperado;
         integer ciclos;
         begin
+            // Carrega operandos, inicia a FSM e espera o estado final.
             inicio = 1'b0;
             carregar_a(a);
             carregar_b(b);

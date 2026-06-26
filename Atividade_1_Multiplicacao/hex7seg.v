@@ -6,6 +6,7 @@ module hex7seg (
 );
 
     always @(*) begin
+        // Codigos dos segmentos para displays ativos em nivel baixo.
         case (digito)
             4'd0: hex = 7'b1000000;
             4'd1: hex = 7'b1111001;

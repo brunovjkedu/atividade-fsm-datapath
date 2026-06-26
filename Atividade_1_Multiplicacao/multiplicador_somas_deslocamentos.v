@@ -20,6 +20,7 @@ module multiplicador_somas_deslocamentos (
     output wire [3:0]  estado_atual
 );
 
+    // Registradores do banco usados pela FSM.
     localparam R_A     = 3'd0;
     localparam R_B     = 3'd1;
     localparam R_RES   = 3'd2;
@@ -27,11 +28,13 @@ module multiplicador_somas_deslocamentos (
     localparam R_MDOR  = 3'd4;
     localparam R_UM    = 3'd5;
 
+    // Operacoes da ULA utilizadas pelo algoritmo.
     localparam OP_SLL  = 3'b001;
     localparam OP_SRL  = 3'b010;
     localparam OP_ADD  = 3'b011;
     localparam OP_AND  = 3'b100;
 
+    // Estados da FSM. Os estados PREP deixam a ULA calcular antes de gravar.
     localparam S_IDLE        = 4'd0;
     localparam S_INIT_RES    = 4'd1;
     localparam S_INIT_UM     = 4'd2;
@@ -68,6 +71,9 @@ module multiplicador_somas_deslocamentos (
     wire       c;
     wire       escreve_dp;
 
+    // No IDLE a escrita vem direto dos botoes de carga.
+    // Nos outros estados, a escrita acontece quando o pulso de clock volta para 0,
+    // depois que as selecoes do datapath ja estabilizaram.
     assign escreve_dp = (estado == S_IDLE) ? (load_a | load_b) : (write_enable & ~clk);
 
     initial begin
@@ -99,6 +105,7 @@ module multiplicador_somas_deslocamentos (
     assign overflow = overflow_reg;
     assign estado_atual = estado;
 
+    // Logica combinacional de proximo estado.
     always @(*) begin
         proximo_estado = estado;
 
@@ -114,9 +121,11 @@ module multiplicador_somas_deslocamentos (
             S_COPIA_B:  proximo_estado = S_TESTA;
 
             S_TESTA: begin
+                // VA esta lendo R4. Se R4 zerou, nao ha mais bits a processar.
                 if (va == 10'd0) begin
                     proximo_estado = S_FIM;
                 end else if (s == 10'd0) begin
+                    // S = R4 AND 1. Se S=0, o bit atual nao entra na soma.
                     if (contador == 4'd9)
                         proximo_estado = S_FIM;
                     else
@@ -129,6 +138,7 @@ module multiplicador_somas_deslocamentos (
             S_PREP_SOMA: proximo_estado = S_SOMA;
 
             S_SOMA: begin
+                // Depois da ultima soma, para se ja nao houver mais bits em R4.
                 if (contador == 4'd9 || !tem_mais_bits)
                     proximo_estado = S_FIM;
                 else
@@ -141,6 +151,7 @@ module multiplicador_somas_deslocamentos (
             S_INC:    proximo_estado = S_TESTA;
 
             S_FIM: begin
+                // Mantem o resultado na tela enquanto inicio estiver pressionado.
                 if (!inicio)
                     proximo_estado = S_IDLE;
             end
@@ -153,18 +164,22 @@ module multiplicador_somas_deslocamentos (
         estado <= proximo_estado;
 
         if (estado == S_IDLE && inicio) begin
+            // Nova execucao: zera contadores e flags.
             contador <= 4'd0;
             overflow_reg <= 1'b0;
             termo_maior_10bits <= 1'b0;
             tem_mais_bits <= 1'b0;
         end else begin
             if (estado == S_TESTA)
+                // Guarda se depois do bit atual ainda existem bits para processar.
                 tem_mais_bits <= (va > 10'd1);
 
             if (estado == S_PREP_SOMA)
+                // Captura carry antes de gravar a soma no acumulador.
                 overflow_reg <= overflow_reg | c | termo_maior_10bits;
 
             if (estado == S_PREP_DESL_A && tem_mais_bits)
+                // So considera overflow de deslocamento se o termo ainda puder ser usado.
                 termo_maior_10bits <= termo_maior_10bits | c;
 
             if (estado == S_INC)
@@ -173,6 +188,7 @@ module multiplicador_somas_deslocamentos (
     end
 
     always @(*) begin
+        // Valores padrao: sem escrita e lendo o acumulador.
         write_enable = 1'b0;
         sel_ra = R_RES;
         sel_rb = R_RES;
@@ -183,6 +199,7 @@ module multiplicador_somas_deslocamentos (
 
         case (estado)
             S_IDLE: begin
+                // Carga externa dos operandos antes do inicio da FSM.
                 mux_w_sel = 1'b1;
                 ext_w = valor_entrada;
 
@@ -196,6 +213,7 @@ module multiplicador_somas_deslocamentos (
             end
 
             S_INIT_RES: begin
+                // R2 comeca em zero.
                 write_enable = 1'b1;
                 sel_rw = R_RES;
                 mux_w_sel = 1'b1;
@@ -203,6 +221,7 @@ module multiplicador_somas_deslocamentos (
             end
 
             S_INIT_UM: begin
+                // R5 guarda a constante 1 para testar bit e deslocar por 1.
                 write_enable = 1'b1;
                 sel_rw = R_UM;
                 mux_w_sel = 1'b1;
@@ -210,6 +229,7 @@ module multiplicador_somas_deslocamentos (
             end
 
             S_COPIA_A: begin
+                // R3 recebe A usando A + 0.
                 write_enable = 1'b1;
                 sel_ra = R_A;
                 sel_rb = R_RES;
@@ -218,6 +238,7 @@ module multiplicador_somas_deslocamentos (
             end
 
             S_COPIA_B: begin
+                // R4 recebe B usando B + 0.
                 write_enable = 1'b1;
                 sel_ra = R_B;
                 sel_rb = R_RES;
@@ -226,12 +247,14 @@ module multiplicador_somas_deslocamentos (
             end
 
             S_TESTA: begin
+                // Calcula R4 AND 1 para saber se o bit atual vale 1.
                 sel_ra = R_MDOR;
                 sel_rb = R_UM;
                 sel_op = OP_AND;
             end
 
             S_PREP_SOMA: begin
+                // Calcula R2 + R3 sem gravar ainda, para capturar carry corretamente.
                 sel_ra = R_RES;
                 sel_rb = R_MCDO;
                 sel_rw = R_RES;
@@ -239,6 +262,7 @@ module multiplicador_somas_deslocamentos (
             end
 
             S_SOMA: begin
+                // Grava o resultado da soma no acumulador R2.
                 write_enable = 1'b1;
                 sel_ra = R_RES;
                 sel_rb = R_MCDO;
@@ -247,6 +271,7 @@ module multiplicador_somas_deslocamentos (
             end
 
             S_PREP_DESL_A: begin
+                // Calcula R3 << 1 sem gravar ainda, para capturar carry corretamente.
                 sel_ra = R_MCDO;
                 sel_rb = R_UM;
                 sel_rw = R_MCDO;
@@ -254,6 +279,7 @@ module multiplicador_somas_deslocamentos (
             end
 
             S_DESL_A: begin
+                // Grava R3 deslocado para a esquerda.
                 write_enable = 1'b1;
                 sel_ra = R_MCDO;
                 sel_rb = R_UM;
@@ -262,6 +288,7 @@ module multiplicador_somas_deslocamentos (
             end
 
             S_DESL_B: begin
+                // Grava R4 deslocado para a direita.
                 write_enable = 1'b1;
                 sel_ra = R_MDOR;
                 sel_rb = R_UM;

@@ -36,6 +36,7 @@ module atividade1_top (
     wire [3:0] dezena;
     wire [3:0] unidade;
 
+    // KEY0 passa por debounce para virar um unico pulso por clique.
     botao_pulso clock_manual (
         .clk      (CLOCK_50),
         .botao_n  (KEY[0]),
@@ -46,6 +47,8 @@ module atividade1_top (
         ultimo_valor_carregado = 10'd0;
     end
 
+    // Fora da execucao, o display mostra o ultimo valor carregado.
+    // Ao resetar com KEY3 solto e KEY0 apertado, esse valor volta para zero.
     always @(posedge CLOCK_50) begin
         if ((~KEY[0]) && KEY[3])
             ultimo_valor_carregado <= 10'd0;
@@ -65,6 +68,11 @@ module atividade1_top (
         .estado_atual  (estado)
     );
 
+    // Prioridade do display:
+    // 1) resultado final quando terminou;
+    // 2) switches durante carga de A ou B;
+    // 3) resultado parcial durante execucao;
+    // 4) ultimo valor carregado quando parado.
     assign valor_display = concluido ? resultado :
                            (((~KEY[1]) || (~KEY[2])) ? SW :
                            ((~KEY[3]) ? resultado : ultimo_valor_carregado));
@@ -82,10 +90,12 @@ module atividade1_top (
     hex7seg h2 (.digito(centena), .hex(HEX2));
     hex7seg h3 (.digito(milhar),  .hex(HEX3));
 
+    // LEDs verdes usados na demonstracao da placa.
     assign LEDG[0] = concluido;
     assign LEDG[1] = concluido & overflow;
     assign LEDG[7:2] = 6'b000000;
 
+    // LEDs vermelhos apagados para nao confundir com estados internos.
     assign LEDR = 10'b0000000000;
 
 endmodule

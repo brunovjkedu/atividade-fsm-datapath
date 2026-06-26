@@ -14,6 +14,7 @@ module botao_pulso (
 
     wire botao_apertado;
 
+    // Depois de sincronizado, inverte porque KEY e ativo em nivel baixo.
     assign botao_apertado = ~botao_sync1;
 
     initial begin
@@ -26,19 +27,23 @@ module botao_pulso (
     end
 
     always @(posedge clk) begin
+        // Dois registradores para sincronizar o botao com CLOCK_50.
         botao_sync0 <= botao_n;
         botao_sync1 <= botao_sync0;
         pulso <= 1'b0;
 
         if (botao_apertado == botao_estavel) begin
+            // Enquanto o valor estiver estavel, o contador fica zerado.
             contador <= 20'd0;
         end else begin
             contador <= contador + 20'd1;
 
             if (contador == 20'd500000) begin
+                // Aceita a mudanca depois de aproximadamente 10 ms em 50 MHz.
                 botao_estavel <= botao_apertado;
                 contador <= 20'd0;
 
+                // Gera pulso apenas na transicao "solto -> apertado".
                 if (botao_apertado && !botao_anterior)
                     pulso <= 1'b1;
 

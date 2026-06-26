@@ -14,6 +14,7 @@ module bin10_para_bcd (
     always @(*) begin
         bcd = 16'd0;
 
+        // Algoritmo double dabble: antes de deslocar, soma 3 em digitos >= 5.
         for (i = 9; i >= 0; i = i - 1) begin
             if (bcd[3:0] >= 4'd5)
                 bcd[3:0] = bcd[3:0] + 4'd3;
@@ -27,6 +28,7 @@ module bin10_para_bcd (
             bcd = {bcd[14:0], bin[i]};
         end
 
+        // Separa os quatro digitos decimais para os quatro displays.
         unidade = bcd[3:0];
         dezena  = bcd[7:4];
         centena = bcd[11:8];

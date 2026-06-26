@@ -206,8 +206,10 @@ A FSM tem estados simples:
 | COPIA_A | Copia A para R3 |
 | COPIA_B | Copia B para R4 |
 | TESTA | Testa se R4 acabou e testa o bit 0 |
-| SOMA | Soma R3 no acumulador R2 |
-| DESL_A | Desloca R3 para a esquerda |
+| PREP_SOMA | Prepara a soma `R2 + R3` e captura carry antes da escrita |
+| SOMA | Grava a soma no acumulador R2 |
+| PREP_DESL_A | Prepara o deslocamento `R3 << 1` e captura carry antes da escrita |
+| DESL_A | Grava R3 deslocado para a esquerda |
 | DESL_B | Desloca R4 para a direita |
 | INC | Incrementa o contador interno |
 | FIM | Resultado pronto |
@@ -218,11 +220,13 @@ O desenho mental e:
 prepara tudo
 enquanto ainda houver bit para testar:
     olha bit0 do multiplicador
-    se bit0 for 1, soma
+    se bit0 for 1, prepara a soma e grava no acumulador
     desloca multiplicando para esquerda
     desloca multiplicador para direita
 fim
 ```
+
+Os estados `PREP_SOMA` e `PREP_DESL_A` existem para a ULA calcular antes da escrita no banco. Isso evita ler o carry depois que o registrador ja foi atualizado.
 
 ## 7. Overflow
 
@@ -307,4 +311,3 @@ Uma explicacao curta e boa:
 ```text
 Eu implementei multiplicacao binaria por somas parciais. O multiplicador fica em R4 e vai sendo deslocado para a direita. O multiplicando fica em R3 e vai sendo deslocado para a esquerda. Em cada ciclo eu testo o bit menos significativo de R4 com AND 1. Se o bit for 1, somo R3 no acumulador R2. Quando R4 vira zero, nao ha mais parcelas para somar, entao a FSM termina. O overflow e indicado quando alguma soma estoura 10 bits ou quando um termo deslocado que ja perdeu bits precisa ser usado no acumulador.
 ```
-
