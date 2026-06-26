@@ -47,7 +47,9 @@ module atividade1_top (
     end
 
     always @(posedge CLOCK_50) begin
-        if ((~KEY[1]) || (~KEY[2]))
+        if ((~KEY[0]) && KEY[3])
+            ultimo_valor_carregado <= 10'd0;
+        else if ((~KEY[1]) || (~KEY[2]))
             ultimo_valor_carregado <= SW;
     end
 
