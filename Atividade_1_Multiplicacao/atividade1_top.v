@@ -29,6 +29,7 @@ module atividade1_top (
     wire [3:0] estado;
     wire       pulso_key0;
     wire [9:0] valor_display;
+    reg  [9:0] ultimo_valor_carregado;
 
     wire [3:0] milhar;
     wire [3:0] centena;
@@ -40,6 +41,15 @@ module atividade1_top (
         .botao_n  (KEY[0]),
         .pulso    (pulso_key0)
     );
+
+    initial begin
+        ultimo_valor_carregado = 10'd0;
+    end
+
+    always @(posedge CLOCK_50) begin
+        if ((~KEY[1]) || (~KEY[2]))
+            ultimo_valor_carregado <= SW;
+    end
 
     multiplicador_somas_deslocamentos mult (
         .clk           (pulso_key0),
@@ -53,7 +63,7 @@ module atividade1_top (
         .estado_atual  (estado)
     );
 
-    assign valor_display = ((~KEY[1]) || (~KEY[2])) ? SW : resultado;
+    assign valor_display = (~KEY[3]) ? resultado : ultimo_valor_carregado;
 
     bin10_para_bcd conv (
         .bin     (valor_display),
