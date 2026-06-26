@@ -49,6 +49,7 @@ module multiplicador_somas_deslocamentos (
     reg [3:0] contador;
     reg       overflow_reg;
     reg       termo_maior_10bits;
+    reg       tem_mais_bits;
 
     reg       write_enable;
     reg [2:0] sel_ra;
@@ -72,6 +73,7 @@ module multiplicador_somas_deslocamentos (
         contador = 4'd0;
         overflow_reg = 1'b0;
         termo_maior_10bits = 1'b0;
+        tem_mais_bits = 1'b0;
     end
 
     datapath dp (
@@ -149,11 +151,15 @@ module multiplicador_somas_deslocamentos (
             contador <= 4'd0;
             overflow_reg <= 1'b0;
             termo_maior_10bits <= 1'b0;
+            tem_mais_bits <= 1'b0;
         end else begin
+            if (estado == S_TESTA)
+                tem_mais_bits <= (va > 10'd1);
+
             if (estado == S_SOMA)
                 overflow_reg <= overflow_reg | c | termo_maior_10bits;
 
-            if (estado == S_DESL_A)
+            if (estado == S_DESL_A && tem_mais_bits)
                 termo_maior_10bits <= termo_maior_10bits | c;
 
             if (estado == S_INC)

@@ -28,6 +28,7 @@ module atividade1_top (
     wire       overflow;
     wire [3:0] estado;
     wire       pulso_key0;
+    wire [9:0] valor_display;
 
     wire [3:0] milhar;
     wire [3:0] centena;
@@ -52,8 +53,10 @@ module atividade1_top (
         .estado_atual  (estado)
     );
 
+    assign valor_display = ((~KEY[1]) || (~KEY[2])) ? SW : resultado;
+
     bin10_para_bcd conv (
-        .bin     (resultado),
+        .bin     (valor_display),
         .milhar  (milhar),
         .centena (centena),
         .dezena  (dezena),
@@ -66,7 +69,7 @@ module atividade1_top (
     hex7seg h3 (.digito(milhar),  .hex(HEX3));
 
     assign LEDG[0] = concluido;
-    assign LEDG[1] = overflow;
+    assign LEDG[1] = concluido & overflow;
     assign LEDG[7:2] = 6'b000000;
 
     assign LEDR = 10'b0000000000;
