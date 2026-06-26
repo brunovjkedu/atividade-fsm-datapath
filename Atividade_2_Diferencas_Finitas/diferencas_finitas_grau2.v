@@ -35,14 +35,18 @@ module diferencas_finitas_grau2 (
 
     localparam OP_ADD = 3'b011;
 
-    localparam S_IDLE    = 4'd0;
-    localparam S_PREP_D2 = 4'd1;
-    localparam S_PREP_D1 = 4'd2;
-    localparam S_MOSTRA  = 4'd3;
-    localparam S_PROX_Y  = 4'd4;
-    localparam S_PROX_D1 = 4'd5;
-    localparam S_INC     = 4'd6;
-    localparam S_FIM     = 4'd7;
+    localparam S_IDLE         = 4'd0;
+    localparam S_PREP_D2      = 4'd1;
+    localparam S_WRITE_D2     = 4'd2;
+    localparam S_PREP_D1      = 4'd3;
+    localparam S_WRITE_D1     = 4'd4;
+    localparam S_MOSTRA       = 4'd5;
+    localparam S_PREP_Y       = 4'd6;
+    localparam S_WRITE_Y      = 4'd7;
+    localparam S_PREP_PROX_D1 = 4'd8;
+    localparam S_WRITE_PROX_D1 = 4'd9;
+    localparam S_INC          = 4'd10;
+    localparam S_FIM          = 4'd11;
 
     reg [3:0] estado;
     reg [3:0] proximo_estado;
@@ -65,7 +69,7 @@ module diferencas_finitas_grau2 (
     wire       c;
     wire       escreve_dp;
 
-    assign escreve_dp = (estado == S_IDLE) ? (load_a | load_b | load_c) : (write_enable & clk);
+    assign escreve_dp = (estado == S_IDLE) ? (load_a | load_b | load_c) : (write_enable & ~clk);
 
     initial begin
         estado = S_IDLE;
@@ -106,9 +110,11 @@ module diferencas_finitas_grau2 (
                     proximo_estado = S_PREP_D2;
             end
 
-            S_PREP_D2: proximo_estado = S_PREP_D1;
+            S_PREP_D2: proximo_estado = S_WRITE_D2;
+            S_WRITE_D2: proximo_estado = S_PREP_D1;
+            S_PREP_D1: proximo_estado = S_WRITE_D1;
 
-            S_PREP_D1: begin
+            S_WRITE_D1: begin
                 if (qtd_reg == 10'd0)
                     proximo_estado = S_FIM;
                 else
@@ -119,12 +125,14 @@ module diferencas_finitas_grau2 (
                 if (contador + 10'd1 >= qtd_reg)
                     proximo_estado = S_FIM;
                 else
-                    proximo_estado = S_PROX_Y;
+                    proximo_estado = S_PREP_Y;
             end
 
-            S_PROX_Y:  proximo_estado = S_PROX_D1;
-            S_PROX_D1: proximo_estado = S_INC;
-            S_INC:     proximo_estado = S_MOSTRA;
+            S_PREP_Y: proximo_estado = S_WRITE_Y;
+            S_WRITE_Y: proximo_estado = S_PREP_PROX_D1;
+            S_PREP_PROX_D1: proximo_estado = S_WRITE_PROX_D1;
+            S_WRITE_PROX_D1: proximo_estado = S_INC;
+            S_INC: proximo_estado = S_MOSTRA;
 
             S_FIM: begin
                 if (!inicio)
@@ -143,7 +151,7 @@ module diferencas_finitas_grau2 (
             qtd_reg <= quantidade;
             overflow_reg <= 1'b0;
         end else begin
-            if (estado == S_PREP_D2 || estado == S_PREP_D1 || estado == S_PROX_Y || estado == S_PROX_D1)
+            if (estado == S_PREP_D2 || estado == S_PREP_D1 || estado == S_PREP_Y || estado == S_PREP_PROX_D1)
                 overflow_reg <= overflow_reg | c;
 
             if (estado == S_INC)
@@ -178,6 +186,13 @@ module diferencas_finitas_grau2 (
             end
 
             S_PREP_D2: begin
+                sel_ra = R_A;
+                sel_rb = R_A;
+                sel_rw = R_D2;
+                sel_op = OP_ADD;
+            end
+
+            S_WRITE_D2: begin
                 write_enable = 1'b1;
                 sel_ra = R_A;
                 sel_rb = R_A;
@@ -186,6 +201,13 @@ module diferencas_finitas_grau2 (
             end
 
             S_PREP_D1: begin
+                sel_ra = R_A;
+                sel_rb = R_B;
+                sel_rw = R_D1;
+                sel_op = OP_ADD;
+            end
+
+            S_WRITE_D1: begin
                 write_enable = 1'b1;
                 sel_ra = R_A;
                 sel_rb = R_B;
@@ -197,7 +219,14 @@ module diferencas_finitas_grau2 (
                 sel_ra = R_Y;
             end
 
-            S_PROX_Y: begin
+            S_PREP_Y: begin
+                sel_ra = R_Y;
+                sel_rb = R_D1;
+                sel_rw = R_Y;
+                sel_op = OP_ADD;
+            end
+
+            S_WRITE_Y: begin
                 write_enable = 1'b1;
                 sel_ra = R_Y;
                 sel_rb = R_D1;
@@ -205,7 +234,14 @@ module diferencas_finitas_grau2 (
                 sel_op = OP_ADD;
             end
 
-            S_PROX_D1: begin
+            S_PREP_PROX_D1: begin
+                sel_ra = R_D1;
+                sel_rb = R_D2;
+                sel_rw = R_D1;
+                sel_op = OP_ADD;
+            end
+
+            S_WRITE_PROX_D1: begin
                 write_enable = 1'b1;
                 sel_ra = R_D1;
                 sel_rb = R_D2;
