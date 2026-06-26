@@ -1,6 +1,7 @@
 // Topo simples para a placa DE1.
 //
 // Controles usados:
+// CLOCK_50 = clock da placa, usado apenas para limpar o botao KEY0
 // SW[9:0] = valor a carregar
 // KEY[0]  = clock manual da FSM
 // KEY[1]  = carrega SW em A
@@ -11,6 +12,7 @@
 //
 // Observacao: os botoes KEY da DE1 sao ativos em nivel baixo.
 module atividade1_top (
+    input  wire       CLOCK_50,
     input  wire [9:0] SW,
     input  wire [3:0] KEY,
     output wire [9:0] LEDR,
@@ -25,14 +27,21 @@ module atividade1_top (
     wire       concluido;
     wire       overflow;
     wire [3:0] estado;
+    wire       pulso_key0;
 
     wire [3:0] milhar;
     wire [3:0] centena;
     wire [3:0] dezena;
     wire [3:0] unidade;
 
+    botao_pulso clock_manual (
+        .clk      (CLOCK_50),
+        .botao_n  (KEY[0]),
+        .pulso    (pulso_key0)
+    );
+
     multiplicador_somas_deslocamentos mult (
-        .clk           (~KEY[0]),
+        .clk           (pulso_key0),
         .inicio        (~KEY[3]),
         .load_a        (~KEY[1]),
         .load_b        (~KEY[2]),
